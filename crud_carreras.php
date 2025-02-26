@@ -130,6 +130,12 @@ $carreras = $conn->query("
             <a href="crud_profesores.php">Profesores</a>
             <a href="crud_materias.php">Materias</a>
             <a href="crud_carreras.php">Carreras</a>
+            <a href="asignar_materias.php">Asignar Materias</a>
+            <a href="disponibilidad_profesores.php">Disponibilidad Profesores</a>
+            <a href="disponibilidad_departamentos.php">Disponibilidad Departamentos</a>
+            <a href="generar_horarios.php">Generar Horarios</a>
+            <a href="revisar_horarios.php">Revisar Horarios</a>
+            <a href="horarios_profesores.php">Horarios por Profesor</a>
         </div>
         
         <h1>Gestión de Carreras</h1>
@@ -146,7 +152,7 @@ $carreras = $conn->query("
             </script>
         <?php endif; ?>
 
-        <button onclick="openModal('agregar')" class="btn-primary">Nueva Carrera</button>
+        <button onclick="openModal('agregar')" class="btn-primary" style="margin-bottom: 20px;" type="button">Nueva Carrera</button>
 
         <div class="table-container">
             <table>

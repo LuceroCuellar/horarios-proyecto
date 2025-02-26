@@ -2,22 +2,27 @@
 // Conexión a la base de datos
 include 'conexion.php';
 
-// Obtener todos los profesores
-$stmt_profesores = $conn->prepare("SELECT * FROM profesores WHERE estado = 1 ORDER BY nombre");
-$stmt_profesores->execute();
-$profesores = $stmt_profesores->fetchAll(PDO::FETCH_ASSOC);
+// Obtener todos los departamentos
+// Reemplaza las líneas de fetchAll con código MySQLi
+$stmt_departamentos = $conn->prepare("SELECT * FROM departamentos WHERE estado = 1 ORDER BY nombre");
+$stmt_departamentos->execute();
+$result = $stmt_departamentos->get_result();
+$departamentos = $result->fetch_all(MYSQLI_ASSOC);
 
-// Obtener profesor seleccionado si existe
-$profesor_id = isset($_GET['profesor_id']) ? $_GET['profesor_id'] : (isset($_POST['profesor_id']) ? $_POST['profesor_id'] : null);
 
-// Obtener disponibilidad del profesor si está seleccionado
+// Obtener departamento seleccionado si existe
+$departamento_id = isset($_GET['departamento_id']) ? $_GET['departamento_id'] : (isset($_POST['departamento_id']) ? $_POST['departamento_id'] : null);
+
+// Obtener disponibilidad del departamento si está seleccionado
 $disponibilidad = [];
-if ($profesor_id) {
-    $stmt_disponibilidad = $conn->prepare("SELECT * FROM disponibilidad_profesor WHERE profesor_id = ? ORDER BY dia, hora_inicio");
-    $stmt_disponibilidad->execute([$profesor_id]);
-    $disponibilidad_raw = $stmt_disponibilidad->fetchAll(PDO::FETCH_ASSOC);
+if ($departamento_id) {
+    $stmt_disponibilidad = $conn->prepare("SELECT * FROM disponibilidad_departamento WHERE departamento_id = ? ORDER BY dia, hora_inicio");
+    $stmt_disponibilidad->bind_param("i", $departamento_id);
+    $stmt_disponibilidad->execute();
+    $result = $stmt_disponibilidad->get_result();
+    $disponibilidad_raw = $result->fetch_all(MYSQLI_ASSOC);
     
-    // Organizar la disponibilidad por día
+    // El resto del código permanece igual
     foreach ($disponibilidad_raw as $disp) {
         if (!isset($disponibilidad[$disp['dia']])) {
             $disponibilidad[$disp['dia']] = [];
@@ -31,7 +36,7 @@ $dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
 // Agregar disponibilidad
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_disponibilidad'])) {
-    $profesor_id = $_POST['profesor_id'];
+    $departamento_id = $_POST['departamento_id'];
     $dia = $_POST['dia'];
     $hora_inicio = $_POST['hora_inicio'];
     $hora_fin = $_POST['hora_fin'];
@@ -42,16 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_disponibilidad
         $tipo_mensaje = "danger";
     } else {
         try {
-            $stmt = $conn->prepare("INSERT INTO disponibilidad_profesor (profesor_id, dia, hora_inicio, hora_fin) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$profesor_id, $dia, $hora_inicio, $hora_fin]);
-            $mensaje = "Disponibilidad agregada correctamente";
+            $stmt = $conn->prepare("INSERT INTO disponibilidad_departamento (departamento_id, dia, hora_inicio, hora_fin) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$departamento_id, $dia, $hora_inicio, $hora_fin]);
+            $mensaje = "Horario agregado correctamente";
             $tipo_mensaje = "success";
             
             // Recargar la página para mostrar la nueva disponibilidad
-            header("Location: disponibilidad_profesor.php?profesor_id=$profesor_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
+            header("Location: departamentos_horarios.php?departamento_id=$departamento_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
             exit;
         } catch (PDOException $e) {
-            $mensaje = "Error al agregar disponibilidad: " . $e->getMessage();
+            $mensaje = "Error al agregar horario: " . $e->getMessage();
             $tipo_mensaje = "danger";
         }
     }
@@ -60,19 +65,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_disponibilidad
 // Eliminar disponibilidad
 if (isset($_GET['eliminar']) && isset($_GET['id'])) {
     $id = $_GET['id'];
-    $profesor_id = $_GET['profesor_id'];
+    $departamento_id = $_GET['departamento_id'];
     
     try {
-        $stmt = $conn->prepare("DELETE FROM disponibilidad_profesor WHERE id = ?");
+        $stmt = $conn->prepare("DELETE FROM disponibilidad_departamento WHERE id = ?");
         $stmt->execute([$id]);
-        $mensaje = "Disponibilidad eliminada correctamente";
+        $mensaje = "Horario eliminado correctamente";
         $tipo_mensaje = "success";
         
         // Recargar la página
-        header("Location: disponibilidad_profesor.php?profesor_id=$profesor_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
+        header("Location: departamentos_horarios.php?departamento_id=$departamento_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
         exit;
     } catch (PDOException $e) {
-        $mensaje = "Error al eliminar disponibilidad: " . $e->getMessage();
+        $mensaje = "Error al eliminar horario: " . $e->getMessage();
         $tipo_mensaje = "danger";
     }
 }
@@ -80,7 +85,7 @@ if (isset($_GET['eliminar']) && isset($_GET['id'])) {
 // Actualizar disponibilidad
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['actualizar_disponibilidad'])) {
     $id = $_POST['id'];
-    $profesor_id = $_POST['profesor_id'];
+    $departamento_id = $_POST['departamento_id'];
     $dia = $_POST['dia'];
     $hora_inicio = $_POST['hora_inicio'];
     $hora_fin = $_POST['hora_fin'];
@@ -91,16 +96,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['actualizar_disponibili
         $tipo_mensaje = "danger";
     } else {
         try {
-            $stmt = $conn->prepare("UPDATE disponibilidad_profesor SET dia = ?, hora_inicio = ?, hora_fin = ? WHERE id = ?");
+            $stmt = $conn->prepare("UPDATE disponibilidad_departamento SET dia = ?, hora_inicio = ?, hora_fin = ? WHERE id = ?");
             $stmt->execute([$dia, $hora_inicio, $hora_fin, $id]);
-            $mensaje = "Disponibilidad actualizada correctamente";
+            $mensaje = "Horario actualizado correctamente";
             $tipo_mensaje = "success";
             
             // Recargar la página
-            header("Location: disponibilidad_profesor.php?profesor_id=$profesor_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
+            header("Location: departamentos_horarios.php?departamento_id=$departamento_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
             exit;
         } catch (PDOException $e) {
-            $mensaje = "Error al actualizar disponibilidad: " . $e->getMessage();
+            $mensaje = "Error al actualizar horario: " . $e->getMessage();
             $tipo_mensaje = "danger";
         }
     }
@@ -118,16 +123,29 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Disponibilidad de Profesores</title>
+    <title>Horarios de Departamentos</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <?php include 'navbar.php'; ?>
+
     
     <div class="container mt-4">
-        <h2>Gestión de Disponibilidad de Profesores</h2>
+    <div class="nav-menu">
+            <a href="index.php">Inicio</a>
+            <a href="crud_profesores.php">Profesores</a>
+            <a href="crud_materias.php">Materias</a>
+            <a href="crud_carreras.php">Carreras</a>
+            <a href="asignar_materias.php">Asignar Materias</a>
+            <a href="disponibilidad_profesores.php">Disponibilidad Profesores</a>
+            <a href="disponibilidad_departamentos.php">Disponibilidad Departamentos</a>
+            <a href="generar_horarios.php">Generar Horarios</a>
+            <a href="revisar_horarios.php">Revisar Horarios</a>
+            <a href="horarios_profesores.php">Horarios por Profesor</a>
+    </div>
+        <h2>Gestión de Horarios de Departamentos</h2>
+        <p class="text-muted">Registre los horarios de los departamentos de Inglés y Desarrollo Humano</p>
         
         <?php if (isset($mensaje)): ?>
             <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
@@ -142,34 +160,34 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
             <div class="col-md-12 mb-4">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Seleccionar Profesor</h4>
+                        <h4 class="mb-0">Seleccionar Departamento</h4>
                     </div>
                     <div class="card-body">
                         <form method="GET" class="form-inline">
                             <div class="form-group mr-2">
-                                <select class="form-control" id="profesor_id" name="profesor_id" required>
-                                    <option value="">Seleccione un profesor</option>
-                                    <?php foreach ($profesores as $profesor): ?>
-                                        <option value="<?php echo $profesor['id']; ?>" <?php echo ($profesor_id == $profesor['id']) ? 'selected' : ''; ?>>
-                                            <?php echo $profesor['nombre'] . ' ' . $profesor['apellidos']; ?>
+                                <select class="form-control" id="departamento_id" name="departamento_id" required>
+                                    <option value="">Seleccione un departamento</option>
+                                    <?php foreach ($departamentos as $departamento): ?>
+                                        <option value="<?php echo $departamento['id']; ?>" <?php echo ($departamento_id == $departamento['id']) ? 'selected' : ''; ?>>
+                                            <?php echo $departamento['nombre']; ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <button type="submit" class="btn btn-primary">Ver Disponibilidad</button>
+                            <button type="submit" class="btn btn-primary">Ver Horarios</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
         
-        <?php if ($profesor_id): ?>
+        <?php if ($departamento_id): ?>
             <?php 
-            // Obtener información del profesor seleccionado
-            $profesor_info = null;
-            foreach ($profesores as $profesor) {
-                if ($profesor['id'] == $profesor_id) {
-                    $profesor_info = $profesor;
+            // Obtener información del departamento seleccionado
+            $departamento_info = null;
+            foreach ($departamentos as $departamento) {
+                if ($departamento['id'] == $departamento_id) {
+                    $departamento_info = $departamento;
                     break;
                 }
             }
@@ -179,16 +197,15 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header bg-info text-white">
-                            <h4 class="mb-0">Registrar Disponibilidad</h4>
+                            <h4 class="mb-0">Registrar Horario</h4>
                         </div>
                         <div class="card-body">
-                            <h5>Profesor: <?php echo $profesor_info['nombre'] . ' ' . $profesor_info['apellidos']; ?></h5>
-                            <p>Horas disponibles: <?php echo $profesor_info['horas_disponibles']; ?> horas</p>
+                            <h5>Departamento: <?php echo $departamento_info['nombre']; ?></h5>
                             
                             <hr>
                             
                             <form method="POST" id="formDisponibilidad">
-                                <input type="hidden" name="profesor_id" value="<?php echo $profesor_id; ?>">
+                                <input type="hidden" name="departamento_id" value="<?php echo $departamento_id; ?>">
                                 
                                 <div class="form-group">
                                     <label for="dia">Día de la semana:</label>
@@ -213,7 +230,7 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                                     </div>
                                     
                                     <button type="submit" name="agregar_disponibilidad" class="btn btn-primary">
-                                        <i class="fas fa-plus"></i> Agregar Disponibilidad
+                                        <i class="fas fa-plus"></i> Agregar Horario
                                     </button>
                                 </div>
                             </form>
@@ -224,7 +241,7 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header bg-success text-white">
-                            <h4 class="mb-0">Disponibilidad Registrada</h4>
+                            <h4 class="mb-0">Horarios Registrados</h4>
                         </div>
                         <div class="card-body">
                             <div class="accordion" id="disponibilidadAccordion">
@@ -274,9 +291,9 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                                                                                 data-fin="<?php echo $disp['hora_fin']; ?>">
                                                                             <i class="fas fa-edit"></i>
                                                                         </button>
-                                                                        <a href="?eliminar=1&id=<?php echo $disp['id']; ?>&profesor_id=<?php echo $profesor_id; ?>" 
+                                                                        <a href="?eliminar=1&id=<?php echo $disp['id']; ?>&departamento_id=<?php echo $departamento_id; ?>" 
                                                                            class="btn btn-sm btn-danger" 
-                                                                           onclick="return confirm('¿Está seguro de eliminar esta disponibilidad?')">
+                                                                           onclick="return confirm('¿Está seguro de eliminar este horario?')">
                                                                             <i class="fas fa-trash"></i>
                                                                         </a>
                                                                     </td>
@@ -285,7 +302,7 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                                                         </tbody>
                                                     </table>
                                                 <?php else: ?>
-                                                    <p class="text-muted">No hay disponibilidad registrada para este día.</p>
+                                                    <p class="text-muted">No hay horarios registrados para este día.</p>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
@@ -304,14 +321,14 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editarDisponibilidadModalLabel">Editar Disponibilidad</h5>
+                    <h5 class="modal-title" id="editarDisponibilidadModalLabel">Editar Horario</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <form method="POST">
                     <input type="hidden" name="id" id="editar_id">
-                    <input type="hidden" name="profesor_id" value="<?php echo $profesor_id; ?>">
+                    <input type="hidden" name="departamento_id" value="<?php echo $departamento_id; ?>">
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="editar_dia">Día de la semana:</label>

@@ -15,7 +15,7 @@ $result = $conn->query($sql);
 </head>
 <body>
     <div class="container">
-        <div class="nav-menu">
+    <div class="nav-menu">
             <a href="index.php">Inicio</a>
             <a href="crud_profesores.php">Profesores</a>
             <a href="crud_materias.php">Materias</a>
@@ -24,6 +24,8 @@ $result = $conn->query($sql);
             <a href="disponibilidad_profesores.php">Disponibilidad Profesores</a>
             <a href="disponibilidad_departamentos.php">Disponibilidad Departamentos</a>
             <a href="generar_horarios.php">Generar Horarios</a>
+            <a href="revisar_horarios.php">Revisar Horarios</a>
+            <a href="horarios_profesores.php">Horarios por Profesor</a>
         </div>
         
         <h1>Disponibilidad de Profesores</h1>

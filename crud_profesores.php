@@ -131,6 +131,7 @@ if(isset($_GET['error'])) {
             <a href="disponibilidad_departamentos.php">Disponibilidad Departamentos</a>
             <a href="generar_horarios.php">Generar Horarios</a>
             <a href="revisar_horarios.php">Revisar Horarios</a>
+            <a href="horarios_profesores.php">Horarios por Profesor</a>
         </div>
         
         <h1>Gestión de Profesores</h1>
