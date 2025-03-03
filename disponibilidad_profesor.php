@@ -5,7 +5,11 @@ include 'conexion.php';
 // Obtener todos los profesores
 $stmt_profesores = $conn->prepare("SELECT * FROM profesores WHERE estado = 1 ORDER BY nombre");
 $stmt_profesores->execute();
-$profesores = $stmt_profesores->fetchAll(PDO::FETCH_ASSOC);
+$result_profesores = $stmt_profesores->get_result();
+$profesores = [];
+while ($row = $result_profesores->fetch_assoc()) {
+    $profesores[] = $row;
+}
 
 // Obtener profesor seleccionado si existe
 $profesor_id = isset($_GET['profesor_id']) ? $_GET['profesor_id'] : (isset($_POST['profesor_id']) ? $_POST['profesor_id'] : null);
@@ -14,8 +18,13 @@ $profesor_id = isset($_GET['profesor_id']) ? $_GET['profesor_id'] : (isset($_POS
 $disponibilidad = [];
 if ($profesor_id) {
     $stmt_disponibilidad = $conn->prepare("SELECT * FROM disponibilidad_profesor WHERE profesor_id = ? ORDER BY dia, hora_inicio");
-    $stmt_disponibilidad->execute([$profesor_id]);
-    $disponibilidad_raw = $stmt_disponibilidad->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_disponibilidad->bind_param("i", $profesor_id);
+    $stmt_disponibilidad->execute();
+    $result_disponibilidad = $stmt_disponibilidad->get_result();
+    $disponibilidad_raw = [];
+    while ($row = $result_disponibilidad->fetch_assoc()) {
+        $disponibilidad_raw[] = $row;
+    }
     
     // Organizar la disponibilidad por día
     foreach ($disponibilidad_raw as $disp) {
@@ -43,14 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_disponibilidad
     } else {
         try {
             $stmt = $conn->prepare("INSERT INTO disponibilidad_profesor (profesor_id, dia, hora_inicio, hora_fin) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$profesor_id, $dia, $hora_inicio, $hora_fin]);
+            $stmt->bind_param("isss", $profesor_id, $dia, $hora_inicio, $hora_fin);
+            $stmt->execute();
             $mensaje = "Disponibilidad agregada correctamente";
             $tipo_mensaje = "success";
             
             // Recargar la página para mostrar la nueva disponibilidad
             header("Location: disponibilidad_profesor.php?profesor_id=$profesor_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
             exit;
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             $mensaje = "Error al agregar disponibilidad: " . $e->getMessage();
             $tipo_mensaje = "danger";
         }
@@ -64,14 +74,15 @@ if (isset($_GET['eliminar']) && isset($_GET['id'])) {
     
     try {
         $stmt = $conn->prepare("DELETE FROM disponibilidad_profesor WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
         $mensaje = "Disponibilidad eliminada correctamente";
         $tipo_mensaje = "success";
         
         // Recargar la página
         header("Location: disponibilidad_profesor.php?profesor_id=$profesor_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
         exit;
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         $mensaje = "Error al eliminar disponibilidad: " . $e->getMessage();
         $tipo_mensaje = "danger";
     }
@@ -92,14 +103,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['actualizar_disponibili
     } else {
         try {
             $stmt = $conn->prepare("UPDATE disponibilidad_profesor SET dia = ?, hora_inicio = ?, hora_fin = ? WHERE id = ?");
-            $stmt->execute([$dia, $hora_inicio, $hora_fin, $id]);
+            $stmt->bind_param("sssi", $dia, $hora_inicio, $hora_fin, $id);
+            $stmt->execute();
             $mensaje = "Disponibilidad actualizada correctamente";
             $tipo_mensaje = "success";
             
             // Recargar la página
             header("Location: disponibilidad_profesor.php?profesor_id=$profesor_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
             exit;
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             $mensaje = "Error al actualizar disponibilidad: " . $e->getMessage();
             $tipo_mensaje = "danger";
         }
@@ -121,12 +133,25 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
     <title>Gestión de Disponibilidad de Profesores</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <?php include 'navbar.php'; ?>
+
     
-    <div class="container mt-4">
+    <div class="container ">
+        <div class="nav-menu">
+            <a href="index.php">Inicio</a>
+            <a href="crud_profesores.php">Profesores</a>
+            <a href="crud_materias.php">Materias</a>
+            <a href="crud_carreras.php">Carreras</a>
+            <a href="asignar_materias.php">Asignar Materias</a>
+            <a href="disponibilidad_profesores.php">Disponibilidad Profesores</a>
+            <a href="disponibilidad_departamentos.php">Disponibilidad Departamentos</a>
+            <a href="generar_horarios.php">Generar Horarios</a>
+            <a href="revisar_horarios.php">Revisar Horarios</a>
+            <a href="horarios_profesores.php">Horarios por Profesor</a>
+        </div>
+
         <h2>Gestión de Disponibilidad de Profesores</h2>
         
         <?php if (isset($mensaje)): ?>
