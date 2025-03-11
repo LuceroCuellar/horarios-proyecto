@@ -3,12 +3,10 @@
 include 'conexion.php';
 
 // Obtener todos los departamentos
-// Reemplaza las líneas de fetchAll con código MySQLi
 $stmt_departamentos = $conn->prepare("SELECT * FROM departamentos WHERE estado = 1 ORDER BY nombre");
 $stmt_departamentos->execute();
 $result = $stmt_departamentos->get_result();
 $departamentos = $result->fetch_all(MYSQLI_ASSOC);
-
 
 // Obtener departamento seleccionado si existe
 $departamento_id = isset($_GET['departamento_id']) ? $_GET['departamento_id'] : (isset($_POST['departamento_id']) ? $_POST['departamento_id'] : null);
@@ -22,7 +20,6 @@ if ($departamento_id) {
     $result = $stmt_disponibilidad->get_result();
     $disponibilidad_raw = $result->fetch_all(MYSQLI_ASSOC);
     
-    // El resto del código permanece igual
     foreach ($disponibilidad_raw as $disp) {
         if (!isset($disponibilidad[$disp['dia']])) {
             $disponibilidad[$disp['dia']] = [];
@@ -41,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_disponibilidad
     $hora_inicio = $_POST['hora_inicio'];
     $hora_fin = $_POST['hora_fin'];
     
-    // Validar que la hora de fin sea mayor que la hora de inicio
     if ($hora_inicio >= $hora_fin) {
         $mensaje = "La hora de fin debe ser mayor que la hora de inicio";
         $tipo_mensaje = "danger";
@@ -51,9 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['agregar_disponibilidad
             $stmt->execute([$departamento_id, $dia, $hora_inicio, $hora_fin]);
             $mensaje = "Horario agregado correctamente";
             $tipo_mensaje = "success";
-            
-            // Recargar la página para mostrar la nueva disponibilidad
-            header("Location: departamentos_horarios.php?departamento_id=$departamento_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
+            header("Location: disponibilidad_departamentos.php?departamento_id=$departamento_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
             exit;
         } catch (PDOException $e) {
             $mensaje = "Error al agregar horario: " . $e->getMessage();
@@ -72,9 +66,7 @@ if (isset($_GET['eliminar']) && isset($_GET['id'])) {
         $stmt->execute([$id]);
         $mensaje = "Horario eliminado correctamente";
         $tipo_mensaje = "success";
-        
-        // Recargar la página
-        header("Location: departamentos_horarios.php?departamento_id=$departamento_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
+        header("Location: disponibilidad_departamentos.php?departamento_id=$departamento_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
         exit;
     } catch (PDOException $e) {
         $mensaje = "Error al eliminar horario: " . $e->getMessage();
@@ -90,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['actualizar_disponibili
     $hora_inicio = $_POST['hora_inicio'];
     $hora_fin = $_POST['hora_fin'];
     
-    // Validar que la hora de fin sea mayor que la hora de inicio
     if ($hora_inicio >= $hora_fin) {
         $mensaje = "La hora de fin debe ser mayor que la hora de inicio";
         $tipo_mensaje = "danger";
@@ -100,9 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['actualizar_disponibili
             $stmt->execute([$dia, $hora_inicio, $hora_fin, $id]);
             $mensaje = "Horario actualizado correctamente";
             $tipo_mensaje = "success";
-            
-            // Recargar la página
-            header("Location: departamentos_horarios.php?departamento_id=$departamento_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
+            header("Location: disponibilidad_departamentos.php?departamento_id=$departamento_id&mensaje=$mensaje&tipo_mensaje=$tipo_mensaje");
             exit;
         } catch (PDOException $e) {
             $mensaje = "Error al actualizar horario: " . $e->getMessage();
@@ -127,12 +116,11 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-
-    
     <div class="container mt-4">
-    <div class="nav-menu">
+        <div class="nav-menu">
             <a href="index.php">Inicio</a>
             <a href="crud_profesores.php">Profesores</a>
             <a href="crud_materias.php">Materias</a>
@@ -143,17 +131,19 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
             <a href="generar_horarios.php">Generar Horarios</a>
             <a href="revisar_horarios.php">Revisar Horarios</a>
             <a href="horarios_profesores.php">Horarios por Profesor</a>
-    </div>
+        </div>
         <h2>Gestión de Horarios de Departamentos</h2>
         <p class="text-muted">Registre los horarios de los departamentos de Inglés y Desarrollo Humano</p>
         
         <?php if (isset($mensaje)): ?>
-            <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
-                <?php echo $mensaje; ?>
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+            <script>
+                Swal.fire({
+                    title: '<?php echo ($tipo_mensaje == "success") ? "Éxito" : "Error"; ?>',
+                    text: '<?php echo $mensaje; ?>',
+                    icon: '<?php echo ($tipo_mensaje == "success") ? "success" : "error"; ?>',
+                    confirmButtonColor: '#3f51b5'
+                });
+            </script>
         <?php endif; ?>
         
         <div class="row">
@@ -201,12 +191,9 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                         </div>
                         <div class="card-body">
                             <h5>Departamento: <?php echo $departamento_info['nombre']; ?></h5>
-                            
                             <hr>
-                            
                             <form method="POST" id="formDisponibilidad">
                                 <input type="hidden" name="departamento_id" value="<?php echo $departamento_id; ?>">
-                                
                                 <div class="form-group">
                                     <label for="dia">Día de la semana:</label>
                                     <select class="form-control" id="dia" name="dia" required>
@@ -216,7 +203,6 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                
                                 <div id="horariosContainer" style="display: none;">
                                     <div class="form-row">
                                         <div class="form-group col-md-6">
@@ -228,7 +214,6 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                                             <input type="time" class="form-control" id="hora_fin" name="hora_fin" required>
                                         </div>
                                     </div>
-                                    
                                     <button type="submit" name="agregar_disponibilidad" class="btn btn-primary">
                                         <i class="fas fa-plus"></i> Agregar Horario
                                     </button>
@@ -261,7 +246,6 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                                                 </button>
                                             </h2>
                                         </div>
-                                        
                                         <div id="collapse<?php echo $index; ?>" 
                                              class="collapse" 
                                              aria-labelledby="heading<?php echo $index; ?>" 
@@ -291,9 +275,9 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                                                                                 data-fin="<?php echo $disp['hora_fin']; ?>">
                                                                             <i class="fas fa-edit"></i>
                                                                         </button>
-                                                                        <a href="?eliminar=1&id=<?php echo $disp['id']; ?>&departamento_id=<?php echo $departamento_id; ?>" 
+                                                                        <a href="#" 
                                                                            class="btn btn-sm btn-danger" 
-                                                                           onclick="return confirm('¿Está seguro de eliminar este horario?')">
+                                                                           onclick="confirmarEliminar(<?php echo $disp['id']; ?>, <?php echo $departamento_id; ?>)">
                                                                             <i class="fas fa-trash"></i>
                                                                         </a>
                                                                     </td>
@@ -387,6 +371,24 @@ if (isset($_GET['mensaje']) && isset($_GET['tipo_mensaje'])) {
                 $('#editar_hora_fin').val(horaFin);
             });
         });
+
+        // Función para confirmar eliminación con SweetAlert2
+        function confirmarEliminar(id, departamento_id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción no se puede revertir",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3f51b5',
+                cancelButtonColor: '#f44336',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'disponibilidad_departamentos.php?eliminar=1&id=' + id + '&departamento_id=' + departamento_id;
+                }
+            });
+        }
     </script>
 </body>
 </html>
