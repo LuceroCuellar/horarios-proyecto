@@ -10,6 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $semestre = (int)($_POST['semestre'] ?? 0);
     $carrera_id = (int)($_POST['carrera_id'] ?? 0);
     $estado = isset($_POST['estado']) ? 1 : 0;
+    $departamento_id = (int)($_POST['departamento_id'] ?? 0);
 
     if (isset($_POST['agregar_materia'])) {
         if (empty($nombre) || empty($codigo) || $horas <= 0 || $semestre <= 0) {
@@ -19,10 +20,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($check->num_rows > 0) {
                 $error = "El código de materia ya existe";
             } else {
+                // Insertar la materia
                 $sql = "INSERT INTO materias (codigo, nombre, horas_semanales, semestre, carrera_id, estado)
                         VALUES ('$codigo', '$nombre', $horas, $semestre, $carrera_id, $estado)";
                 
                 if ($conn->query($sql)) {
+                    $materia_id = $conn->insert_id; // Obtener el ID de la materia insertada
+
+                    // Insertar la relación en materias_departamentos si se seleccionó un departamento
+                    if ($departamento_id > 0) {
+                        $sql_relacion = "INSERT INTO materias_departamentos (materia_id, departamento_id)
+                                         VALUES ($materia_id, $departamento_id)";
+                        if (!$conn->query($sql_relacion)) {
+                            $error = "Error al asociar el departamento: " . $conn->error;
+                        }
+                    }
+
                     $message = "Materia agregada correctamente";
                 } else {
                     $error = "Error al agregar: " . $conn->error;
@@ -40,6 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($check->num_rows > 0) {
                 $error = "El código de materia ya está en uso";
             } else {
+                // Actualizar la materia
                 $sql = "UPDATE materias SET
                         codigo = '$codigo',
                         nombre = '$nombre',
@@ -50,6 +64,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         WHERE id = $id";
                 
                 if ($conn->query($sql)) {
+                    // Actualizar la relación en materias_departamentos
+                    $conn->query("DELETE FROM materias_departamentos WHERE materia_id = $id"); // Eliminar relación existente
+                    if ($departamento_id > 0) {
+                        $sql_relacion = "INSERT INTO materias_departamentos (materia_id, departamento_id)
+                                         VALUES ($id, $departamento_id)";
+                        if (!$conn->query($sql_relacion)) {
+                            $error = "Error al actualizar el departamento: " . $conn->error;
+                        }
+                    }
+
                     $message = "Materia actualizada correctamente";
                 } else {
                     $error = "Error al actualizar: " . $conn->error;
@@ -67,6 +91,10 @@ if (isset($_GET['eliminar'])) {
     if ($check->num_rows > 0) {
         $error = "No se puede eliminar: Existen horarios relacionados";
     } else {
+        // Eliminar la relación con el departamento
+        $conn->query("DELETE FROM materias_departamentos WHERE materia_id = $id");
+        
+        // Soft delete de la materia
         if ($conn->query("UPDATE materias SET estado = 0 WHERE id = $id")) {
             $message = "Materia eliminada correctamente";
         } else {
@@ -77,10 +105,13 @@ if (isset($_GET['eliminar'])) {
 
 // Obtener datos
 $carreras = $conn->query("SELECT * FROM carreras WHERE estado = 1")->fetch_all(MYSQLI_ASSOC);
+$departamentos = $conn->query("SELECT * FROM departamentos WHERE estado = 1")->fetch_all(MYSQLI_ASSOC);
 $materias = $conn->query("
-    SELECT m.*, c.nombre as carrera 
+    SELECT m.*, c.nombre as carrera, d.nombre as departamento, md.departamento_id
     FROM materias m
     LEFT JOIN carreras c ON m.carrera_id = c.id
+    LEFT JOIN materias_departamentos md ON m.id = md.materia_id
+    LEFT JOIN departamentos d ON md.departamento_id = d.id
     WHERE m.estado = 1
     ORDER BY m.nombre
 ")->fetch_all(MYSQLI_ASSOC);
@@ -157,7 +188,7 @@ $materias = $conn->query("
             </script>
         <?php endif; ?>
 
-        <button onclick="openModal('agregar')" class="btn-primary" style="margin-bottom: 20px;" type="button" >Nueva Materia</button>
+        <button onclick="openModal('agregar')" class="btn-primary" style="margin-bottom: 20px;" type="button">Nueva Materia</button>
 
         <div class="table-container">
             <table>
@@ -169,6 +200,7 @@ $materias = $conn->query("
                         <th>Semestre</th>
                         <th>Carrera</th>
                         <th>Estado</th>
+                        <th>Departamento</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -181,8 +213,9 @@ $materias = $conn->query("
                         <td><?= $m['semestre'] ?></td>
                         <td><?= $m['carrera'] ?? 'Sin asignar' ?></td>
                         <td><?= $m['estado'] ? 'Activa' : 'Inactiva' ?></td>
+                        <td><?= $m['departamento'] ?? 'Sin asignar' ?></td>
                         <td>
-                            <button class="btn-edit" onclick="editarMateria(<?= $m['id'] ?>, '<?= $m['codigo'] ?>', '<?= $m['nombre'] ?>', <?= $m['horas_semanales'] ?>, <?= $m['semestre'] ?>, <?= $m['carrera_id'] ?>, <?= $m['estado'] ?>)">
+                            <button class="btn-edit" onclick="editarMateria(<?= $m['id'] ?>, '<?= $m['codigo'] ?>', '<?= $m['nombre'] ?>', <?= $m['horas_semanales'] ?>, <?= $m['semestre'] ?>, <?= $m['carrera_id'] ?>, <?= $m['estado'] ?>, <?= $m['departamento_id'] ?? 'null' ?>)">
                                 Editar
                             </button>
                             <button class="btn-danger" onclick="confirmarEliminar(<?= $m['id'] ?>)">
@@ -240,6 +273,16 @@ $materias = $conn->query("
                         </select>
                     </label>
                 </div>
+                <div class="form-group">
+                    <label>Departamento:
+                        <select name="departamento_id">
+                            <option value="">Seleccionar...</option>
+                            <?php foreach ($departamentos as $d): ?>
+                            <option value="<?= $d['id'] ?>"><?= $d['nombre'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                </div>
                 <button type="submit" name="agregar_materia" class="btn-primary">Guardar</button>
             </form>
         </div>
@@ -290,6 +333,16 @@ $materias = $conn->query("
                         </select>
                     </label>
                 </div>
+                <div class="form-group">
+                    <label>Departamento:
+                        <select name="departamento_id" id="edit_departamento">
+                            <option value="">Seleccionar...</option>
+                            <?php foreach ($departamentos as $d): ?>
+                            <option value="<?= $d['id'] ?>"><?= $d['nombre'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                </div>
                 <button type="submit" name="editar_materia" class="btn-primary">Actualizar</button>
             </form>
         </div>
@@ -305,7 +358,7 @@ $materias = $conn->query("
             document.getElementById(type).style.display = 'none';
         }
 
-        function editarMateria(id, codigo, nombre, horas, semestre, carrera_id, estado) {
+        function editarMateria(id, codigo, nombre, horas, semestre, carrera_id, estado, departamento_id) {
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_codigo').value = codigo;
             document.getElementById('edit_nombre').value = nombre;
@@ -313,6 +366,7 @@ $materias = $conn->query("
             document.getElementById('edit_semestre').value = semestre;
             document.getElementById('edit_carrera').value = carrera_id;
             document.getElementById('edit_estado').value = estado;
+            document.getElementById('edit_departamento').value = departamento_id || '';
             openModal('editar');
         }
 
