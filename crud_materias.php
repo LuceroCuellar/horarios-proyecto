@@ -120,113 +120,95 @@ $materias = $conn->query("
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Gestión de Materias</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-        
-        .modal-content {
-            background-color: #fff;
-            margin: 5% auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 80%;
-            max-width: 600px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            position: relative;
-        }
-        
-        .close-modal {
-            position: absolute;
-            right: 20px;
-            top: 10px;
-            font-size: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #aaa;
-        }
-    </style>
+    <?php include 'header.php'; ?>
+
 </head>
 <body>
-    <div class="container">
-        <div class="nav-menu">
-            <a href="index.php">Inicio</a>
-            <a href="crud_profesores.php">Profesores</a>
-            <a href="crud_materias.php">Materias</a>
-            <a href="crud_carreras.php">Carreras</a>
-            <a href="asignar_materias.php">Asignar Materias</a>
-            <a href="disponibilidad_profesores.php">Disponibilidad Profesores</a>
-            <a href="disponibilidad_departamentos.php">Disponibilidad Departamentos</a>
-            <a href="generar_horarios.php">Generar Horarios</a>
-            <a href="revisar_horarios.php">Revisar Horarios</a>
-            <a href="horarios_profesores.php">Horarios por Profesor</a>
+    <!-- Botón toggle para menú en móviles -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Incluir el menú lateral -->
+    <?php include 'nav.php'; ?>
+
+    <div class="page-wrapper">
+        <div class="content-wrapper">
+            <!-- Incluir el header -->
+                        <!-- Header de la página -->
+            <div class="page-header">
+                <h1>Gestión de Materias</h1>
+            </div>
+            <div class="container">
+                <!-- Notificaciones -->
+                <?php if(isset($error)): ?>
+                    <script>
+                        Swal.fire({icon: 'error', title: 'Error', text: '<?= $error ?>'});
+                    </script>
+                <?php endif; ?>
+                
+                <?php if(isset($message)): ?>
+                    <script>
+                        Swal.fire({icon: 'success', title: 'Éxito', text: '<?= $message ?>'});
+                    </script>
+                <?php endif; ?>
+
+                <button onclick="openModal('agregar')" class="btn-primary" style="margin-bottom: 20px;" type="button">
+                    <i class="fas fa-plus-circle"></i> Nueva Materia
+                </button>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Horas</th>
+                                        <th>Semestre</th>
+                                        <th>Carrera</th>
+                                        <th>Estado</th>
+                                        <th>Departamento</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($materias as $m): ?>
+                                    <tr>
+                                        <td><?= $m['codigo'] ?></td>
+                                        <td><?= $m['nombre'] ?></td>
+                                        <td><?= $m['horas_semanales'] ?></td>
+                                        <td><?= $m['semestre'] ?></td>
+                                        <td><?= $m['carrera'] ?? 'Sin asignar' ?></td>
+                                        <td>
+                                            <?php if($m['estado']): ?>
+                                                <span class="badge badge-success">Activa</span>
+                                            <?php else: ?>
+                                                <span class="badge badge-danger">Inactiva</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?= $m['departamento'] ?? 'Sin asignar' ?></td>
+                                        <td>
+                                            <button class="btn-edit" onclick="editarMateria(<?= $m['id'] ?>, '<?= $m['codigo'] ?>', '<?= $m['nombre'] ?>', <?= $m['horas_semanales'] ?>, <?= $m['semestre'] ?>, <?= $m['carrera_id'] ?>, <?= $m['estado'] ?>, <?= $m['departamento_id'] ?? 'null' ?>)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-danger" onclick="confirmarEliminar(<?= $m['id'] ?>)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <h1>Gestión de Materias</h1>
 
-        <?php if(isset($error)): ?>
-            <script>
-                Swal.fire({icon: 'error', title: 'Error', text: '<?= $error ?>'});
-            </script>
-        <?php endif; ?>
-        
-        <?php if(isset($message)): ?>
-            <script>
-                Swal.fire({icon: 'success', title: 'Éxito', text: '<?= $message ?>'});
-            </script>
-        <?php endif; ?>
-
-        <button onclick="openModal('agregar')" class="btn-primary" style="margin-bottom: 20px;" type="button">Nueva Materia</button>
-
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th>Horas</th>
-                        <th>Semestre</th>
-                        <th>Carrera</th>
-                        <th>Estado</th>
-                        <th>Departamento</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($materias as $m): ?>
-                    <tr>
-                        <td><?= $m['codigo'] ?></td>
-                        <td><?= $m['nombre'] ?></td>
-                        <td><?= $m['horas_semanales'] ?></td>
-                        <td><?= $m['semestre'] ?></td>
-                        <td><?= $m['carrera'] ?? 'Sin asignar' ?></td>
-                        <td><?= $m['estado'] ? 'Activa' : 'Inactiva' ?></td>
-                        <td><?= $m['departamento'] ?? 'Sin asignar' ?></td>
-                        <td>
-                            <button class="btn-edit" onclick="editarMateria(<?= $m['id'] ?>, '<?= $m['codigo'] ?>', '<?= $m['nombre'] ?>', <?= $m['horas_semanales'] ?>, <?= $m['semestre'] ?>, <?= $m['carrera_id'] ?>, <?= $m['estado'] ?>, <?= $m['departamento_id'] ?? 'null' ?>)">
-                                Editar
-                            </button>
-                            <button class="btn-danger" onclick="confirmarEliminar(<?= $m['id'] ?>)">
-                                Eliminar
-                            </button>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+        <!-- Incluir el footer -->
+        <?php include 'footer.php'; ?>
     </div>
 
     <!-- Modal Agregar -->
@@ -236,54 +218,49 @@ $materias = $conn->query("
             <h2>Nueva Materia</h2>
             <form method="POST">
                 <div class="form-group">
-                    <label>Código: 
-                        <input type="text" name="codigo" required>
-                    </label>
+                    <label for="codigo">Código:</label>
+                    <input type="text" name="codigo" id="codigo" required>
                 </div>
                 <div class="form-group">
-                    <label>Nombre: 
-                        <input type="text" name="nombre" required>
-                    </label>
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" name="nombre" id="nombre" required>
                 </div>
                 <div class="form-group">
-                    <label>Horas Semanales: 
-                        <input type="number" name="horas_semanales" min="1" required>
-                    </label>
+                    <label for="horas_semanales">Horas Semanales:</label>
+                    <input type="number" name="horas_semanales" id="horas_semanales" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Semestre: 
-                        <input type="number" name="semestre" min="1" required>
-                    </label>
+                    <label for="semestre">Semestre:</label>
+                    <input type="number" name="semestre" id="semestre" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Carrera:
-                        <select name="carrera_id" required>
-                            <option value="">Seleccionar...</option>
-                            <?php foreach ($carreras as $c): ?>
-                            <option value="<?= $c['id'] ?>"><?= $c['nombre'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
+                    <label for="carrera_id">Carrera:</label>
+                    <select name="carrera_id" id="carrera_id" required>
+                        <option value="">Seleccionar...</option>
+                        <?php foreach ($carreras as $c): ?>
+                        <option value="<?= $c['id'] ?>"><?= $c['nombre'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>Estado: 
-                        <select name="estado" required>
-                            <option value="1">Activa</option>
-                            <option value="0">Inactiva</option>
-                        </select>
-                    </label>
+                    <label for="estado">Estado:</label>
+                    <select name="estado" id="estado" required>
+                        <option value="1">Activa</option>
+                        <option value="0">Inactiva</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>Departamento:
-                        <select name="departamento_id">
-                            <option value="">Seleccionar...</option>
-                            <?php foreach ($departamentos as $d): ?>
-                            <option value="<?= $d['id'] ?>"><?= $d['nombre'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
+                    <label for="departamento_id">Departamento:</label>
+                    <select name="departamento_id" id="departamento_id">
+                        <option value="">Seleccionar...</option>
+                        <?php foreach ($departamentos as $d): ?>
+                        <option value="<?= $d['id'] ?>"><?= $d['nombre'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                <button type="submit" name="agregar_materia" class="btn-primary">Guardar</button>
+                <button type="submit" name="agregar_materia" class="btn-primary">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
             </form>
         </div>
     </div>
@@ -296,59 +273,92 @@ $materias = $conn->query("
             <form method="POST">
                 <input type="hidden" name="id" id="edit_id">
                 <div class="form-group">
-                    <label>Código: 
-                        <input type="text" name="codigo" id="edit_codigo" required>
-                    </label>
+                    <label for="edit_codigo">Código:</label>
+                    <input type="text" name="codigo" id="edit_codigo" required>
                 </div>
                 <div class="form-group">
-                    <label>Nombre: 
-                        <input type="text" name="nombre" id="edit_nombre" required>
-                    </label>
+                    <label for="edit_nombre">Nombre:</label>
+                    <input type="text" name="nombre" id="edit_nombre" required>
                 </div>
                 <div class="form-group">
-                    <label>Horas Semanales: 
-                        <input type="number" name="horas_semanales" id="edit_horas" min="1" required>
-                    </label>
+                    <label for="edit_horas">Horas Semanales:</label>
+                    <input type="number" name="horas_semanales" id="edit_horas" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Semestre: 
-                        <input type="number" name="semestre" id="edit_semestre" min="1" required>
-                    </label>
+                    <label for="edit_semestre">Semestre:</label>
+                    <input type="number" name="semestre" id="edit_semestre" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Carrera:
-                        <select name="carrera_id" id="edit_carrera" required>
-                            <option value="">Seleccionar...</option>
-                            <?php foreach ($carreras as $c): ?>
-                            <option value="<?= $c['id'] ?>"><?= $c['nombre'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
+                    <label for="edit_carrera">Carrera:</label>
+                    <select name="carrera_id" id="edit_carrera" required>
+                        <option value="">Seleccionar...</option>
+                        <?php foreach ($carreras as $c): ?>
+                        <option value="<?= $c['id'] ?>"><?= $c['nombre'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>Estado: 
-                        <select name="estado" id="edit_estado" required>
-                            <option value="1">Activa</option>
-                            <option value="0">Inactiva</option>
-                        </select>
-                    </label>
+                    <label for="edit_estado">Estado:</label>
+                    <select name="estado" id="edit_estado" required>
+                        <option value="1">Activa</option>
+                        <option value="0">Inactiva</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>Departamento:
-                        <select name="departamento_id" id="edit_departamento">
-                            <option value="">Seleccionar...</option>
-                            <?php foreach ($departamentos as $d): ?>
-                            <option value="<?= $d['id'] ?>"><?= $d['nombre'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
+                    <label for="edit_departamento">Departamento:</label>
+                    <select name="departamento_id" id="edit_departamento">
+                        <option value="">Seleccionar...</option>
+                        <?php foreach ($departamentos as $d): ?>
+                        <option value="<?= $d['id'] ?>"><?= $d['nombre'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                <button type="submit" name="editar_materia" class="btn-primary">Actualizar</button>
+                <button type="submit" name="editar_materia" class="btn-primary">
+                    <i class="fas fa-save"></i> Actualizar
+                </button>
             </form>
         </div>
     </div>
 
+    <!-- Script para el toggle del menú lateral -->
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.sidebar');
+            const contentWrapper = document.querySelector('.content-wrapper');
+            const mainFooter = document.querySelector('.main-footer');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+                
+                // Ajustar el margen del contenido y footer en dispositivos móviles
+                if (window.innerWidth <= 768) {
+                    if (sidebar.classList.contains('active')) {
+                        contentWrapper.style.marginLeft = '270px';
+                        if (mainFooter) mainFooter.style.marginLeft = '270px';
+                    } else {
+                        contentWrapper.style.marginLeft = '0';
+                        if (mainFooter) mainFooter.style.marginLeft = '0';
+                    }
+                }
+            });
+            
+            // Restablecer estilos cuando se redimensiona la ventana
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    contentWrapper.style.marginLeft = '';
+                    if (mainFooter) mainFooter.style.marginLeft = '';
+                } else {
+                    if (sidebar.classList.contains('active')) {
+                        contentWrapper.style.marginLeft = '270px';
+                        if (mainFooter) mainFooter.style.marginLeft = '270px';
+                    } else {
+                        contentWrapper.style.marginLeft = '0';
+                        if (mainFooter) mainFooter.style.marginLeft = '0';
+                    }
+                }
+            });
+        });
         // Funciones para modales
         function openModal(type) {
             document.getElementById(type).style.display = 'block';

@@ -87,106 +87,97 @@ $carreras = $conn->query("
     <title>Gestión de Carreras</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-        
-        .modal-content {
-            background-color: #fff;
-            margin: 5% auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 80%;
-            max-width: 600px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            position: relative;
-        }
-        
-        .close-modal {
-            position: absolute;
-            right: 20px;
-            top: 10px;
-            font-size: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #aaa;
-        }
-    </style>
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Fuente Montserrat para el modal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php include 'header.php'; ?>
 </head>
 <body>
-    <div class="container">
-        <div class="nav-menu">
-            <a href="index.php">Inicio</a>
-            <a href="crud_profesores.php">Profesores</a>
-            <a href="crud_materias.php">Materias</a>
-            <a href="crud_carreras.php">Carreras</a>
-            <a href="asignar_materias.php">Asignar Materias</a>
-            <a href="disponibilidad_profesores.php">Disponibilidad Profesores</a>
-            <a href="disponibilidad_departamentos.php">Disponibilidad Departamentos</a>
-            <a href="generar_horarios.php">Generar Horarios</a>
-            <a href="revisar_horarios.php">Revisar Horarios</a>
-            <a href="horarios_profesores.php">Horarios por Profesor</a>
+    <!-- Botón toggle para menú en móviles -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Incluir el menú lateral -->
+    <?php include 'nav.php'; ?>
+
+    <div class="page-wrapper">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1>Gestión de Carreras</h1>
+            </div>
+
+            <div class="container">
+                <!-- Notificaciones -->
+                <?php if(isset($error)): ?>
+                    <script>
+                        Swal.fire({icon: 'error', title: 'Error', text: '<?= $error ?>'});
+                    </script>
+                <?php endif; ?>
+                
+                <?php if(isset($message)): ?>
+                    <script>
+                        Swal.fire({icon: 'success', title: 'Éxito', text: '<?= $message ?>'});
+                    </script>
+                <?php endif; ?>
+
+                <button onclick="openModal('agregar')" class="btn-primary" style="margin-bottom: 20px;" type="button">
+                    <i class="fas fa-plus-circle"></i> Nueva Carrera
+                </button>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Semestres</th>
+                                        <th>Materias</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($carreras as $c): ?>
+                                    <tr>
+                                        <td><?= $c['codigo'] ?></td>
+                                        <td><?= $c['nombre'] ?></td>
+                                        <td><?= $c['semestres'] ?></td>
+                                        <td><?= $c['num_materias'] ?></td>
+                                        <td>
+                                            <?php if($c['estado']): ?>
+                                                <span class="badge badge-success">Activa</span>
+                                            <?php else: ?>
+                                                <span class="badge badge-danger">Inactiva</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <button class="btn-edit" onclick="editarCarrera(<?= $c['id'] ?>, '<?= $c['nombre'] ?>', '<?= $c['codigo'] ?>', <?= $c['semestres'] ?>, <?= $c['estado'] ?>)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-danger" onclick="confirmarEliminar(<?= $c['id'] ?>)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <h1>Gestión de Carreras</h1>
 
-        <?php if(isset($error)): ?>
-            <script>
-                Swal.fire({icon: 'error', title: 'Error', text: '<?= $error ?>'});
-            </script>
-        <?php endif; ?>
-        
-        <?php if(isset($message)): ?>
-            <script>
-                Swal.fire({icon: 'success', title: 'Éxito', text: '<?= $message ?>'});
-            </script>
-        <?php endif; ?>
-
-        <button onclick="openModal('agregar')" class="btn-primary" style="margin-bottom: 20px;" type="button">Nueva Carrera</button>
-
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th>Semestres</th>
-                        <th>Materias</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($carreras as $c): ?>
-                    <tr>
-                        <td><?= $c['codigo'] ?></td>
-                        <td><?= $c['nombre'] ?></td>
-                        <td><?= $c['semestres'] ?></td>
-                        <td><?= $c['num_materias'] ?></td>
-                        <td><?= $c['estado'] ? 'Activa' : 'Inactiva' ?></td>
-                        <td>
-                            <button class="btn-edit" onclick="editarCarrera(<?= $c['id'] ?>, '<?= $c['nombre'] ?>', '<?= $c['codigo'] ?>', <?= $c['semestres'] ?>, <?= $c['estado'] ?>)">
-                                Editar
-                            </button>
-                            <button class="btn-danger" onclick="confirmarEliminar(<?= $c['id'] ?>)">
-                                Eliminar
-                            </button>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+        <!-- Incluir el footer -->
+        <?php include 'footer.php'; ?>
     </div>
 
     <!-- Modal Agregar -->
@@ -196,29 +187,27 @@ $carreras = $conn->query("
             <h2>Nueva Carrera</h2>
             <form method="POST">
                 <div class="form-group">
-                    <label>Nombre: 
-                        <input type="text" name="nombre" required>
-                    </label>
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" name="nombre" id="nombre" required>
                 </div>
                 <div class="form-group">
-                    <label>Código: 
-                        <input type="text" name="codigo" required>
-                    </label>
+                    <label for="codigo">Código:</label>
+                    <input type="text" name="codigo" id="codigo" required>
                 </div>
                 <div class="form-group">
-                    <label>Semestres: 
-                        <input type="number" name="semestres" min="1" required>
-                    </label>
+                    <label for="semestres">Semestres:</label>
+                    <input type="number" name="semestres" id="semestres" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Estado: 
-                        <select name="estado" required>
-                            <option value="1">Activa</option>
-                            <option value="0">Inactiva</option>
-                        </select>
-                    </label>
+                    <label for="estado">Estado:</label>
+                    <select name="estado" id="estado" required>
+                        <option value="1">Activa</option>
+                        <option value="0">Inactiva</option>
+                    </select>
                 </div>
-                <button type="submit" name="agregar_carrera" class="btn-primary">Guardar</button>
+                <button type="submit" name="agregar_carrera" class="btn-primary">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
             </form>
         </div>
     </div>
@@ -231,34 +220,70 @@ $carreras = $conn->query("
             <form method="POST">
                 <input type="hidden" name="id" id="edit_id">
                 <div class="form-group">
-                    <label>Nombre: 
-                        <input type="text" name="nombre" id="edit_nombre" required>
-                    </label>
+                    <label for="edit_nombre">Nombre:</label>
+                    <input type="text" name="nombre" id="edit_nombre" required>
                 </div>
                 <div class="form-group">
-                    <label>Código: 
-                        <input type="text" name="codigo" id="edit_codigo" required>
-                    </label>
+                    <label for="edit_codigo">Código:</label>
+                    <input type="text" name="codigo" id="edit_codigo" required>
                 </div>
                 <div class="form-group">
-                    <label>Semestres: 
-                        <input type="number" name="semestres" id="edit_semestres" min="1" required>
-                    </label>
+                    <label for="edit_semestres">Semestres:</label>
+                    <input type="number" name="semestres" id="edit_semestres" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Estado: 
-                        <select name="estado" id="edit_estado" required>
-                            <option value="1">Activa</option>
-                            <option value="0">Inactiva</option>
-                        </select>
-                    </label>
+                    <label for="edit_estado">Estado:</label>
+                    <select name="estado" id="edit_estado" required>
+                        <option value="1">Activa</option>
+                        <option value="0">Inactiva</option>
+                    </select>
                 </div>
-                <button type="submit" name="editar_carrera" class="btn-primary">Actualizar</button>
+                <button type="submit" name="editar_carrera" class="btn-primary">
+                    <i class="fas fa-save"></i> Actualizar
+                </button>
             </form>
         </div>
     </div>
 
     <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.sidebar');
+            const contentWrapper = document.querySelector('.content-wrapper');
+            const mainFooter = document.querySelector('.main-footer');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+                
+                // Ajustar el margen del contenido y footer en dispositivos móviles
+                if (window.innerWidth <= 768) {
+                    if (sidebar.classList.contains('active')) {
+                        contentWrapper.style.marginLeft = '270px';
+                        if (mainFooter) mainFooter.style.marginLeft = '270px';
+                    } else {
+                        contentWrapper.style.marginLeft = '0';
+                        if (mainFooter) mainFooter.style.marginLeft = '0';
+                    }
+                }
+            });
+            
+            // Restablecer estilos cuando se redimensiona la ventana
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    contentWrapper.style.marginLeft = '';
+                    if (mainFooter) mainFooter.style.marginLeft = '';
+                } else {
+                    if (sidebar.classList.contains('active')) {
+                        contentWrapper.style.marginLeft = '270px';
+                        if (mainFooter) mainFooter.style.marginLeft = '270px';
+                    } else {
+                        contentWrapper.style.marginLeft = '0';
+                        if (mainFooter) mainFooter.style.marginLeft = '0';
+                    }
+                }
+            });
+        });
         // Funciones para modales
         function openModal(type) {
             document.getElementById(type).style.display = 'block';

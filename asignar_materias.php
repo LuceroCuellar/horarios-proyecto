@@ -115,53 +115,55 @@ foreach ($asignaciones as $asignacion) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asignación de Materias a Profesores</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Fuente Montserrat para el modal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <?php include 'header.php'; ?>
 </head>
 <body>
-    <div class="container mt-4">
+    <!-- Botón toggle para menú en móviles -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
 
-        <div class="nav-menu">
-            <a href="index.php">Inicio</a>
-            <a href="crud_profesores.php">Profesores</a>
-            <a href="crud_materias.php">Materias</a>
-            <a href="crud_carreras.php">Carreras</a>
-            <a href="asignar_materias.php">Asignar Materias</a>
-            <a href="disponibilidad_profesores.php">Disponibilidad Profesores</a>
-            <a href="disponibilidad_departamentos.php">Disponibilidad Departamentos</a>
-            <a href="generar_horarios.php">Generar Horarios</a>
-            <a href="revisar_horarios.php">Revisar Horarios</a>
-            <a href="horarios_profesores.php">Horarios por Profesor</a>
-        </div>
-        <h2>Asignación de Materias a Profesores</h2>
-        
-        <?php if (isset($mensaje)): ?>
-            <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
-                <?php echo $mensaje; ?>
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+    <!-- Incluir el menú lateral -->
+    <?php include 'nav.php'; ?>
+
+    <div class="page-wrapper">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1>Asignación de Materias a Profesores</h1>
             </div>
-        <?php endif; ?>
-        
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#asignarMateriaModal">
-                    <i class="fas fa-plus"></i> Asignar Materia a Profesor
-                </button>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-12">
+            
+            <div class="container">
+                <?php if (isset($mensaje)): ?>
+                    <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show" role="alert">
+                        <?php echo $mensaje; ?>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                <?php endif; ?>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <button type="button" class="btn-primary" data-toggle="modal" data-target="#asignarMateriaModal">
+                            <i class="fas fa-plus"></i> Asignar Materia a Profesor
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Profesores y sus Materias Asignadas</h4>
+                    <div class="card-header">
+                        <h3>Profesores y sus Materias Asignadas</h3>
                     </div>
                     <div class="card-body">
                         <div class="accordion" id="profesoresAccordion">
                             <?php foreach ($profesores as $index => $profesor): ?>
-                                <div class="card">
+                                <div class="card mb-3">
                                     <div class="card-header" id="heading<?php echo $profesor['id']; ?>">
                                         <h2 class="mb-0">
                                             <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" 
@@ -182,44 +184,46 @@ foreach ($asignaciones as $asignacion) {
                                          data-parent="#profesoresAccordion">
                                         <div class="card-body">
                                             <?php if (isset($materias_por_profesor[$profesor['id']])): ?>
-                                                <table class="table table-striped">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Código</th>
-                                                            <th>Nombre de Materia</th>
-                                                            <th>Carrera</th>
-                                                            <th>Acciones</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php foreach ($materias_por_profesor[$profesor['id']] as $materia): ?>
+                                                <div class="table-container">
+                                                    <table>
+                                                        <thead>
                                                             <tr>
-                                                                <td><?php echo $materia['codigo']; ?></td>
-                                                                <td><?php echo $materia['nombre']; ?></td>
-                                                                <td><?php echo $materia['carrera']; ?></td>
-                                                                <td>
-                                                                    <button type="button" class="btn btn-sm btn-warning" 
-                                                                            data-toggle="modal" 
-                                                                            data-target="#editarAsignacionModal" 
-                                                                            data-id="<?php echo $materia['id']; ?>"
-                                                                            data-profesor="<?php echo $profesor['id']; ?>"
-                                                                            data-materia="<?php echo $materia['materia_id']; ?>">
-                                                                        <i class="fas fa-edit"></i>
-                                                                    </button>
-                                                                    <a href="?eliminar=1&profesor_id=<?php echo $profesor['id']; ?>&materia_id=<?php echo $materia['materia_id']; ?>" 
-                                                                       class="btn btn-sm btn-danger" 
-                                                                       onclick="return confirm('¿Está seguro de eliminar esta asignación?')">
-                                                                        <i class="fas fa-trash"></i>
-                                                                    </a>
-                                                                </td>
+                                                                <th>Código</th>
+                                                                <th>Nombre de Materia</th>
+                                                                <th>Carrera</th>
+                                                                <th>Acciones</th>
                                                             </tr>
-                                                        <?php endforeach; ?>
-                                                    </tbody>
-                                                </table>
+                                                        </thead>
+                                                        <tbody>
+                                                            <?php foreach ($materias_por_profesor[$profesor['id']] as $materia): ?>
+                                                                <tr>
+                                                                    <td><?php echo $materia['codigo']; ?></td>
+                                                                    <td><?php echo $materia['nombre']; ?></td>
+                                                                    <td><?php echo $materia['carrera']; ?></td>
+                                                                    <td>
+                                                                        <button type="button" class="btn-edit" 
+                                                                                data-toggle="modal" 
+                                                                                data-target="#editarAsignacionModal" 
+                                                                                data-id="<?php echo $materia['id']; ?>"
+                                                                                data-profesor="<?php echo $profesor['id']; ?>"
+                                                                                data-materia="<?php echo $materia['materia_id']; ?>">
+                                                                            <i class="fas fa-edit"></i>
+                                                                        </button>
+                                                                        <a href="?eliminar=1&profesor_id=<?php echo $profesor['id']; ?>&materia_id=<?php echo $materia['materia_id']; ?>" 
+                                                                           class="btn-danger" 
+                                                                           onclick="return confirm('¿Está seguro de eliminar esta asignación?')">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </a>
+                                                                    </td>
+                                                                </tr>
+                                                            <?php endforeach; ?>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             <?php else: ?>
                                                 <p class="text-muted">Este profesor no tiene materias asignadas.</p>
                                             <?php endif; ?>
-                                            <button type="button" class="btn btn-primary btn-sm" 
+                                            <button type="button" class="btn-primary mt-3" 
                                                     data-toggle="modal" 
                                                     data-target="#asignarMateriaModal" 
                                                     data-profesor="<?php echo $profesor['id']; ?>">
@@ -234,6 +238,9 @@ foreach ($asignaciones as $asignacion) {
                 </div>
             </div>
         </div>
+
+        <!-- Incluir el footer -->
+        <?php include 'footer.php'; ?>
     </div>
     
     <!-- Modal para asignar materia -->
@@ -274,7 +281,9 @@ foreach ($asignaciones as $asignacion) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" name="asignar_materia" class="btn btn-primary">Asignar</button>
+                        <button type="submit" name="asignar_materia" class="btn-primary">
+                            <i class="fas fa-save"></i> Asignar
+                        </button>
                     </div>
                 </form>
             </div>
@@ -318,7 +327,9 @@ foreach ($asignaciones as $asignacion) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" name="actualizar_asignacion" class="btn btn-primary">Actualizar</button>
+                        <button type="submit" name="actualizar_asignacion" class="btn-primary">
+                            <i class="fas fa-save"></i> Actualizar
+                        </button>
                     </div>
                 </form>
             </div>
@@ -330,6 +341,44 @@ foreach ($asignaciones as $asignacion) {
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     
     <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.sidebar');
+            const contentWrapper = document.querySelector('.content-wrapper');
+            const mainFooter = document.querySelector('.main-footer');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+                
+                // Ajustar el margen del contenido y footer en dispositivos móviles
+                if (window.innerWidth <= 768) {
+                    if (sidebar.classList.contains('active')) {
+                        contentWrapper.style.marginLeft = '270px';
+                        if (mainFooter) mainFooter.style.marginLeft = '270px';
+                    } else {
+                        contentWrapper.style.marginLeft = '0';
+                        if (mainFooter) mainFooter.style.marginLeft = '0';
+                    }
+                }
+            });
+            
+            // Restablecer estilos cuando se redimensiona la ventana
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    contentWrapper.style.marginLeft = '';
+                    if (mainFooter) mainFooter.style.marginLeft = '';
+                } else {
+                    if (sidebar.classList.contains('active')) {
+                        contentWrapper.style.marginLeft = '270px';
+                        if (mainFooter) mainFooter.style.marginLeft = '270px';
+                    } else {
+                        contentWrapper.style.marginLeft = '0';
+                        if (mainFooter) mainFooter.style.marginLeft = '0';
+                    }
+                }
+            });
+        });
         $(document).ready(function() {
             // Configurar modal de asignación al seleccionar profesor
             $('#asignarMateriaModal').on('show.bs.modal', function (event) {
