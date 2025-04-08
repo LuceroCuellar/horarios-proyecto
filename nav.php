@@ -38,6 +38,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="horarios_profesores.php" class="<?php echo ($current_page == 'horarios_profesores.php') ? 'active' : ''; ?>">
             <i class="fas fa-user-clock" style="margin-right: 20px;"></i> <span>Horarios por<br>Profesor</span>
         </a>
+        <a href="crud_grupos.php" class="<?php echo ($current_page == 'crud_grupos.php') ? 'active' : ''; ?>">
+            <i class="fas fa-user-clock" style="margin-right: 20px;"></i> <span>Grupos</span>
+        </a>
+        <a href="materias_grupo.php" class="<?php echo ($current_page == 'materias_grupo.php') ? 'active' : ''; ?>">
+            <i class="fas fa-tasks" style="margin-right: 20px;"></i> <span>Asignar Materias a Grupos</span>
+        </a>
     </nav>
     <div class="sidebar-footer">
         <p>&copy; <?php echo date('Y'); ?> Sistema de Horarios</p>
