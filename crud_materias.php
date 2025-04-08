@@ -166,7 +166,7 @@ $materias = $conn->query("
                                         <th>Código</th>
                                         <th>Nombre</th>
                                         <th>Horas</th>
-                                        <th>Semestre</th>
+                                        <th>Cuatrimestres</th>
                                         <th>Carrera</th>
                                         <th>Estado</th>
                                         <th>Departamento</th>
@@ -230,7 +230,7 @@ $materias = $conn->query("
                     <input type="number" name="horas_semanales" id="horas_semanales" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label for="semestre">Semestre:</label>
+                    <label for="semestre">Cuatrimestres:</label>
                     <input type="number" name="semestre" id="semestre" min="1" required>
                 </div>
                 <div class="form-group">
@@ -285,7 +285,7 @@ $materias = $conn->query("
                     <input type="number" name="horas_semanales" id="edit_horas" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit_semestre">Semestre:</label>
+                    <label for="edit_semestre">Cuatrimestres:</label>
                     <input type="number" name="semestre" id="edit_semestre" min="1" required>
                 </div>
                 <div class="form-group">

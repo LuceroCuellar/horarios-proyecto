@@ -138,7 +138,7 @@ $carreras = $conn->query("
                                     <tr>
                                         <th>Código</th>
                                         <th>Nombre</th>
-                                        <th>Semestres</th>
+                                        <th>Cuatrimestres</th>
                                         <th>Materias</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
@@ -195,7 +195,7 @@ $carreras = $conn->query("
                     <input type="text" name="codigo" id="codigo" required>
                 </div>
                 <div class="form-group">
-                    <label for="semestres">Semestres:</label>
+                    <label for="semestres">Cuatrimestres:</label>
                     <input type="number" name="semestres" id="semestres" min="1" required>
                 </div>
                 <div class="form-group">
@@ -228,7 +228,7 @@ $carreras = $conn->query("
                     <input type="text" name="codigo" id="edit_codigo" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit_semestres">Semestres:</label>
+                    <label for="edit_semestres">Cuatrimestres:</label>
                     <input type="number" name="semestres" id="edit_semestres" min="1" required>
                 </div>
                 <div class="form-group">
