@@ -1,7 +1,7 @@
 <?php
 $servername = "localhost";
 $username = "root";
-$password = "";
+$password = "Natz0418";
 $dbname = "sistema_horarios";
 
 // Crear conexión

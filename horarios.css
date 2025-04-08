@@ -1,0 +1,188 @@
+/* Estilos generales para tablas de horarios */
+.horario-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.horario-table thead {
+    background: linear-gradient(45deg, #3b82f6, #2563eb);
+}
+
+.horario-table th {
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 14px 10px;
+    text-align: center;
+    border: none;
+}
+
+.horario-table td {
+    padding: 12px 15px;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+.horario-table tbody tr {
+    transition: all 0.2s ease;
+    background-color: white;
+}
+
+.horario-table tbody tr:hover {
+    background-color: #f1f5f9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.horario-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Estilos para los badges */
+.badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-success {
+    background-color: #10b981;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.badge-info {
+    background-color: #3b82f6;
+    color: white;
+}
+
+/* Estilos para el título del día */
+.dia-header {
+    position: relative;
+    margin: 30px 0 15px;
+    font-weight: 600;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+}
+
+.dia-header::after {
+    content: '';
+    flex-grow: 1;
+    height: 1px;
+    background: #e5e7eb;
+    margin-left: 15px;
+}
+
+/* Estilos para los botones de acción */
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 3px;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.save-btn {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #2563eb;
+}
+
+.delete-btn {
+    background-color: #ef4444;
+    color: white;
+}
+
+.delete-btn:hover {
+    background-color: #dc2626;
+}
+
+/* Estilo para el select de estado */
+.estado-select {
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin-right: 8px;
+    transition: all 0.2s;
+}
+
+.estado-select:hover, .estado-select:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+/* Estilos para la vista gráfica del horario */
+.horario-item {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+}
+
+.horario-item strong {
+    display: block;
+    font-size: 0.9rem;
+}
+
+/* Estilos para el formulario de generación */
+.form-check-label {
+    margin-left: 5px;
+    user-select: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .horario-table {
+        font-size: 0.8rem;
+    }
+    
+    .horario-table th, 
+    .horario-table td {
+        padding: 8px 5px;
+    }
+    
+    .action-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.7rem;
+    }
+    
+    .estado-select {
+        padding: 4px 6px;
+        font-size: 0.75rem;
+    }
+}
