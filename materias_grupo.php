@@ -236,7 +236,7 @@ function filtrar_materias_por_semestre($materias, $semestre) {
                                                             <tr>
                                                                 <th>Código</th>
                                                                 <th>Nombre de Materia</th>
-                                                                <th>Semestre</th>
+                                                                <th>Cuatrimestre</th>
                                                                 <th>Carrera</th>
                                                                 <th>Acciones</th>
                                                             </tr>
