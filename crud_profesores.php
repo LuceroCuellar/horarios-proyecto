@@ -142,7 +142,7 @@ if (isset($_GET['error'])) {
                                             echo "<td>
                                                 <button onclick='editarProfesor(" . $row["id"] . ", \"" . $row["nombre"] . "\", \"" . $row["apellidos"] . "\", \"" . $row["email"] . "\", \"" . $row["telefono"] . "\", " . $row["horas_disponibles"] . ")' class='btn-edit'><i class='fas fa-edit'></i></button>
                                                 <button onclick='confirmarEliminar(" . $row["id"] . ")' class='btn-danger'><i class='fas fa-trash'></i></button>
-                                                <a href='ver_materias_profesor.php?id=" . $row["id"] . "' class='btn-view'><i class='fas fa-book'></i></a>
+                                                <a href='asignar_materias.php?id=" . $row["id"] . "' class='btn-view'><i class='fas fa-book'></i></a>
                                                 <a href='disponibilidad_profesor.php?id=" . $row["id"] . "' class='btn-success'><i class='fas fa-calendar-alt'></i></a>
                                             </td>";
                                             echo "</tr>";

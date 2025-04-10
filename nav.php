@@ -29,6 +29,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="disponibilidad_departamentos.php" class="<?php echo ($current_page == 'disponibilidad_departamentos.php') ? 'active' : ''; ?>">
             <i class="fas fa-building"style="margin-right: 20px;"></i> <span>Disponibilidad<br>Departamentos</span>
         </a>
+        <a href="gestionar_recursamientos.php" class="<?php echo ($current_page == 'gestionar_recursamientos.php') ? 'active' : ''; ?>">
+            <i class="fas fa-sync-alt" style="margin-right: 20px;"></i> <span>Gestionar<br>Recursamientos</span>
+        </a>
         <a href="generar_horarios.php" class="<?php echo ($current_page == 'generar_horarios.php') ? 'active' : ''; ?>">
             <i class="fas fa-cogs" style="margin-right: 20px;"></i> <span>Generar Horarios</span>
         </a>
